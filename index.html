@@ -1,1 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Record System</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f4f4f4; }
+        h1 { text-align: center; color: #333; }
+        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        button:hover { background: #45a049; }
+        #records { margin-top: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f2f2f2; }
+        .error { color: red; }
+        .success { color: green; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Student Record System</h1>
+    <form id="studentForm">
+        <label for="id">Enter ID:</label>
+        <input type="number" id="id" required>
+
+        <label for="name">Enter Name:</label>
+        <input type="text" id="name" required maxlength="49">
+
+        <label for="dept">Enter Dept:</label>
+        <input type="text" id="dept" required maxlength="19">
+
+        <label for="cgpa">Enter CGPA:</label>
+        <input type="number" id="cgpa" step="0.01" min="0" max="4.00" required>
+
+        <button type="submit">Insert Record</button>
+    </form>
+
+    <div id="message"></div>
+
+    <div id="records">
+        <h2>Stored Records (like students.txt)</h2>
+        <table id="recordsTable">
+            <thead>
+                <tr><th>ID</th><th>Name</th><th>Dept</th><th>CGPA</th></tr>
+            </thead>
+            <tbody id="recordsBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const form = document.getElementById('studentForm');
+        const message = document.getElementById('message');
+        const recordsBody = document.getElementById('recordsBody');
+
+        // Load records from localStorage (simulates students.txt)
+        let students = JSON.parse(localStorage.getItem('students.txt')) || [];
+
+        function displayRecords() {
+            recordsBody.innerHTML = '';
+            if (students.length === 0) {
+                recordsBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No records yet.</td></tr>';
+                return;
+            }
+            students.forEach(s => {
+                const row = recordsBody.insertRow();
+                row.innerHTML = `<td>${s.id}</td><td>${s.name}</td><td>${s.dept}</td><td>${s.cgpa.toFixed(2)}</td>`;
+            });
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('id').value);
+            const name = document.getElementById('name').value.trim();
+            const dept = document.getElementById('dept').value.trim();
+            const cgpa = parseFloat(document.getElementById('cgpa').value);
+
+            // Check for duplicate ID (simple validation)
+            if (students.some(s => s.id === id)) {
+                message.innerHTML = '<span class="error">Error: ID already exists!</span>';
+                return;
+            }
+
+            // Insert record
+            const student = { id, name, dept, cgpa };
+            students.push(student);
+
+            // Save to localStorage (like fwrite in C)
+            localStorage.setItem('students.txt', JSON.stringify(students));
+
+            message.innerHTML = '<span class="success">Record inserted.</span>';
+            form.reset();
+            displayRecords();
+            setTimeout(() => { message.innerHTML = ''; }, 3000);
+        });
+
+        // Initial display
+        displayRecords();
+    </script>
+</body>
+</html>
 
