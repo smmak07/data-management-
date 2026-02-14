@@ -108,6 +108,23 @@
 
         // Initial display
         displayRecords();
+
+        <!-- SEARCH SECTION -->
+<div class="search-section">
+    <h3>🔍 Search by ID</h3>
+    <div class="search-container">
+        <input type="number" id="searchId" placeholder="Enter ID to search" style="width: 70%;">
+        <button onclick="searchStudent()">Search</button>
+        <button onclick="clearSearch()" style="background: #ff9800;">Clear</button>
+    </div>
+    <div id="searchResult"></div>
+</div>
+
+<!-- UPDATE RECORDS SECTION (after search) -->
+<div id="records">
+    <!-- existing records content stays same -->
+</div>
+
     </script>
 </body>
 </html>
