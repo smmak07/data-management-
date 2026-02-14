@@ -76,50 +76,124 @@
 </div>
 
     <script>
-        const form = document.getElementById('studentForm');
-        const message = document.getElementById('message');
-        const recordsBody = document.getElementById('recordsBody');
+const form = document.getElementById('studentForm');
+const message = document.getElementById('message');
+const recordsBody = document.getElementById('recordsBody');
+const searchResult = document.getElementById('searchResult');
+const searchIdInput = document.getElementById('searchId');
 
-        // Load records from localStorage (simulates students.txt)
-        let students = JSON.parse(localStorage.getItem('students.txt')) || [];
+let students = JSON.parse(localStorage.getItem('students.txt')) || [];
 
-        function displayRecords() {
-            recordsBody.innerHTML = '';
-            if (students.length === 0) {
-                recordsBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No records yet.</td></tr>';
-                return;
-            }
-            students.forEach(s => {
-                const row = recordsBody.insertRow();
-                row.innerHTML = `<td>${s.id}</td><td>${s.name}</td><td>${s.dept}</td><td>${s.cgpa.toFixed(2)}</td>`;
-            });
-        }
+function displayRecords(filteredStudents = students) {
+    recordsBody.innerHTML = '';
+    if (filteredStudents.length === 0) {
+        recordsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">No records found.</td></tr>';
+        return;
+    }
+    filteredStudents.forEach((s, index) => {
+        const row = recordsBody.insertRow();
+        row.innerHTML = `
+            <td>${s.id}</td>
+            <td>${s.name}</td>
+            <td>${s.dept}</td>
+            <td>${s.cgpa.toFixed(2)}</td>
+            <td>
+                <button onclick="deleteStudent(${s.id})" class="delete-btn">🗑️ Delete</button>
+                <button onclick="showStudent(${s.id})" class="view-btn">👁️ View</button>
+            </td>
+        `;
+        row.classList.add('new-row');
+        setTimeout(() => row.classList.remove('new-row'), 600);
+    });
+}
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = parseInt(document.getElementById('id').value);
-            const name = document.getElementById('name').value.trim();
-            const dept = document.getElementById('dept').value.trim();
-            const cgpa = parseFloat(document.getElementById('cgpa').value);
+// SEARCH FUNCTION
+function searchStudent() {
+    const id = parseInt(searchIdInput.value);
+    if (!id) {
+        showMessage('Enter a valid ID!', 'error');
+        return;
+    }
+    
+    const student = students.find(s => s.id === id);
+    if (student) {
+        searchResult.innerHTML = `
+            <div class="found-student">
+                <h4>✅ Found Student:</h4>
+                <p><strong>ID:</strong> ${student.id}</p>
+                <p><strong>Name:</strong> ${student.name}</p>
+                <p><strong>Dept:</strong> ${student.dept}</p>
+                <p><strong>CGPA:</strong> ${student.cgpa.toFixed(2)}</p>
+                <button onclick="deleteStudent(${student.id})" class="delete-btn">🗑️ Delete This</button>
+            </div>
+        `;
+        searchIdInput.value = '';
+    } else {
+        searchResult.innerHTML = '<div class="error">❌ Student with ID ' + id + ' not found!</div>';
+    }
+}
 
-            // Check for duplicate ID (simple validation)
-            if (students.some(s => s.id === id)) {
-                message.innerHTML = '<span class="error">Error: ID already exists!</span>';
-                return;
-            }
+function clearSearch() {
+    searchResult.innerHTML = '';
+    searchIdInput.value = '';
+}
 
-            // Insert record
-            const student = { id, name, dept, cgpa };
-            students.push(student);
-
-            // Save to localStorage (like fwrite in C)
-            localStorage.setItem('students.txt', JSON.stringify(students));
-
-            message.innerHTML = '<span class="success">Record inserted.</span>';
-            form.reset();
-            displayRecords();
-            setTimeout(() => { message.innerHTML = ''; }, 3000);
-        });
-
-        // Initial display
+// DELETE FUNCTION
+function deleteStudent(id) {
+    if (confirm(`Delete student ID ${id}?`)) {
+        students = students.filter(s => s.id !== id);
+        localStorage.setItem('students.txt', JSON.stringify(students));
+        showMessage('Student deleted successfully!', 'success');
         displayRecords();
+        searchResult.innerHTML = '';
+    }
+}
+
+function showStudent(id) {
+    const student = students.find(s => s.id === id);
+    if (student) {
+        searchResult.innerHTML = `
+            <div class="found-student">
+                <h4>👤 Student Details:</h4>
+                <p><strong>ID:</strong> ${student.id}</p>
+                <p><strong>Name:</strong> ${student.name}</p>
+                <p><strong>Dept:</strong> ${student.dept}</p>
+                <p><strong>CGPA:</strong> ${student.cgpa.toFixed(2)}</p>
+                <button onclick="deleteStudent(${student.id})" class="delete-btn">🗑️ Delete</button>
+                <button onclick="clearSearch()" class="clear-btn">Close</button>
+            </div>
+        `;
+    }
+}
+
+function showMessage(text, type) {
+    message.innerHTML = `<span class="${type}">${text}</span>`;
+    setTimeout(() => { message.innerHTML = ''; }, 3000);
+}
+
+// FORM SUBMIT (updated)
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = parseInt(document.getElementById('id').value);
+    
+    if (students.some(s => s.id === id)) {
+        showMessage('Error: ID already exists!', 'error');
+        return;
+    }
+
+    const name = document.getElementById('name').value.trim();
+    const dept = document.getElementById('dept').value.trim();
+    const cgpa = parseFloat(document.getElementById('cgpa').value);
+
+    const student = { id, name, dept, cgpa };
+    students.push(student);
+    localStorage.setItem('students.txt', JSON.stringify(students));
+
+    showMessage('Record inserted.', 'success');
+    form.reset();
+    displayRecords();
+});
+
+// Initial load
+displayRecords();
+</script>
